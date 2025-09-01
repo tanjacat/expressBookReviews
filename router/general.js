@@ -29,41 +29,36 @@ public_users.post("/register", (req, res) => {
 });
 
 
-public_users.get('/', async function (req, res) {
-    try {
-        const allBooks = await new Promise((resolve, reject) => {
-            resolve(books);
-        });
-        return res.status(200).json(allBooks);
-    } catch (err) {
-        return res.status(500).json({ message: "Error fetching books" });
-    }
-});
+public_users.get('/', (req, res) => {
+    // async callback function
+    (async function fetchBooks() {
+      try {
+        const allBooks = await Promise.resolve(books);
+        res.status(200).json(allBooks);
+      } catch (err) {
+        res.status(500).json({ message: "Error fetching books" });
+      }
+    })();
+  });
+  
 
 
 
 
-// Get book details based on ISBN using async/await + Axios
-public_users.get('/isbn/:isbn', async function (req, res) {
+  public_users.get('/isbn/:isbn', (req, res) => {
     const isbn = req.params.isbn;
-
-    try {
-        // Create a promise to fetch the book by ISBN
-        const bookDetails = await new Promise((resolve, reject) => {
-            if (books[isbn]) {
-                resolve(books[isbn]); // Resolve with book details if found
-            } else {
-                reject("Book not found"); // Reject if book does not exist
-            }
-        });
-
-        // Send the book details as JSON
-        return res.status(200).json(bookDetails);
-    } catch (error) {
-        // If promise is rejected, return 404 with error message
-        return res.status(404).json({ message: error });
-    }
-});
+  
+    new Promise((resolve, reject) => {
+      if (books[isbn]) {
+        resolve(books[isbn]);
+      } else {
+        reject({ message: "Book not found" });
+      }
+    })
+      .then((book) => res.status(200).json(book))
+      .catch((err) => res.status(404).json(err));
+  });
+  
 
 
   
